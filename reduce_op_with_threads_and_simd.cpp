@@ -80,7 +80,6 @@ int main(int argc, char* argv[])
     std::cout << "Sum: " << sum << std::endl;
 
     std::cout<<RefSum(dataArray, size) << std::endl;
-    // assert(std::fabs(RefSum(dataArray, size) - sum) < 2e-3);
 
     delete[] dataArray;
     delete[] lSum;
