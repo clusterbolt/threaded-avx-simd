@@ -1,8 +1,12 @@
-# threaded-avx-sum
-Simple AVX2 SIMD based parallel threaded reduce sum
+# threaded-avx-simd
+Simple AVX2 SIMD based parallel threaded library with optimized:
+reduce sum and sort for float
 
 To build:
-g++ reduce_op_with_threads_and_simd.cpp -mavx2
+mkdir -p bin && cd bin/
+cmake ..
+make
 
 To run:
-./a.out <array-size>
+./test/avx_kernels_reduce_sum_test <array-size>
+./test/avx_kernels_sort_test <size> <dir[0/1]> <OPTIONAL: alt = unidirectional>
