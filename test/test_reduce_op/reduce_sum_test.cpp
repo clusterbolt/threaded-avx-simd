@@ -70,11 +70,15 @@ int main(int argc, char* argv[])
     float sumRes;
     high_resolution_clock::time_point start = high_resolution_clock::now();
     ReduceSumFunc(dataArray, arrSize, sumRes);
-    std::cout << "Time taken: " <<
+    std::cout << "Optimized time taken: " <<
         std::chrono::duration_cast<milliseconds>(high_resolution_clock::now() - start).count() <<
         " ms" << std::endl;
     std::cout << "Sum: " << sumRes << std::endl;
+    start = high_resolution_clock::now();
     float sumRef = RefSum(dataArray, arrSize, nThreads);
+    std::cout << "Reference time taken: " <<
+        std::chrono::duration_cast<milliseconds>(high_resolution_clock::now() - start).count() <<
+        " ms" << std::endl;
     std::cout << "Ref sum: " << sumRef << std::endl;
     // Find the difference when interpreted as integers
     int ulpDiff = std::fabs(*reinterpret_cast<int*>(&sumRes) - *reinterpret_cast<int*>(&sumRef));

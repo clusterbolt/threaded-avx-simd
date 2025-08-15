@@ -13,7 +13,7 @@
 // #define PRINT_DEBUG  // Uncomment to enable debug prints
 #define RANDOM_DATA  // Uncomment to use random data instead of a fixed pattern
 constexpr unsigned int FLOAT_VEC_SIZE = 8;
-constexpr unsigned int OUTER_SIZE = 10;
+constexpr unsigned int OUTER_SIZE = 1000;
 
 #ifdef PRINT_DEBUG
     #define PRINT_DATA(DATA, TITLE)                                      \
@@ -33,14 +33,13 @@ bool my_greater(float a, float b) { return a > b; }
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <size> <dir[0/1]> <alt = unidirectional>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <size> <dir[0/1]>" << std::endl;
         return 1;
     }
     unsigned int sortSize = std::stoul(argv[1]);
     bool sortDir = std::stoi(argv[2]) != 0; // true for ascending, false for descending
     std::vector<std::vector<float>> in0(OUTER_SIZE, std::vector<float>(sortSize)),
         out0(OUTER_SIZE, std::vector<float>(sortSize));
-    std::string sortType = (argc > 3) ? argv[3] : "";
     auto& out0Ref = in0;
 #ifdef RANDOM_DATA
     std::random_device rd;
@@ -73,19 +72,18 @@ int main(int argc, char *argv[]) {
         std::chrono::duration_cast<std::chrono::microseconds>(refTimeTotal).count() << " us" << std::endl;
 
     auto kernelTimeTotal = std::chrono::high_resolution_clock::duration::zero();
-    if (sortType == "alt")
-    {
-        auto kernelTimeStart = std::chrono::high_resolution_clock::now();
-        BitonicSortAltFunc(out0, OUTER_SIZE, sortSize, sortDir);
-        kernelTimeTotal += (std::chrono::high_resolution_clock::now() - kernelTimeStart);
-    }
-    else
-    {
-        auto kernelTimeStart = std::chrono::high_resolution_clock::now();
+
+    auto kernelTimeStart = std::chrono::high_resolution_clock::now();
         BitonicSortFunc(out0, OUTER_SIZE, sortSize, sortDir);
         kernelTimeTotal += (std::chrono::high_resolution_clock::now() - kernelTimeStart);
-    }
     std::cout << "SIMD time: " <<
+        std::chrono::duration_cast<std::chrono::microseconds>(kernelTimeTotal).count() << " us" << std::endl;
+
+    kernelTimeTotal = std::chrono::high_resolution_clock::duration::zero();
+    kernelTimeStart = std::chrono::high_resolution_clock::now();
+        BitonicSortAltFunc(out0, OUTER_SIZE, sortSize, sortDir);
+        kernelTimeTotal += (std::chrono::high_resolution_clock::now() - kernelTimeStart);
+    std::cout << "SIMD uni directional time: " <<
         std::chrono::duration_cast<std::chrono::microseconds>(kernelTimeTotal).count() << " us" << std::endl;
 
     PRINT_DATA(out0, "Output: \n");
