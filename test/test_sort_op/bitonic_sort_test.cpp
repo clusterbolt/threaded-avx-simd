@@ -8,7 +8,7 @@
 #include <random>
 #include <chrono>
 #include <limits>
-#include "bitonic_sort_with_simd.h"
+#include "api.h"
 
 // #define PRINT_DEBUG  // Uncomment to enable debug prints
 #define RANDOM_DATA  // Uncomment to use random data instead of a fixed pattern
@@ -74,14 +74,14 @@ int main(int argc, char *argv[]) {
     auto kernelTimeTotal = std::chrono::high_resolution_clock::duration::zero();
 
     auto kernelTimeStart = std::chrono::high_resolution_clock::now();
-        BitonicSortFunc(out0, OUTER_SIZE, sortSize, sortDir);
+        bitonic_sort_execute(bitonicSortType_t::BITONIC_SORT, out0, OUTER_SIZE, sortSize, sortDir);
         kernelTimeTotal += (std::chrono::high_resolution_clock::now() - kernelTimeStart);
     std::cout << "SIMD time: " <<
         std::chrono::duration_cast<std::chrono::microseconds>(kernelTimeTotal).count() << " us" << std::endl;
 
     kernelTimeTotal = std::chrono::high_resolution_clock::duration::zero();
     kernelTimeStart = std::chrono::high_resolution_clock::now();
-        BitonicSortAltFunc(out0, OUTER_SIZE, sortSize, sortDir);
+        bitonic_sort_execute(bitonicSortType_t::BITONIC_SORT_ALT, out0, OUTER_SIZE, sortSize, sortDir);
         kernelTimeTotal += (std::chrono::high_resolution_clock::now() - kernelTimeStart);
     std::cout << "SIMD uni directional time: " <<
         std::chrono::duration_cast<std::chrono::microseconds>(kernelTimeTotal).count() << " us" << std::endl;

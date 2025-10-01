@@ -3,7 +3,7 @@
 #include <vector>
 #include <cassert> // assert
 #include <cmath> // std::fabs
-#include "matmul_with_simd.h"
+#include "api.h"
 
 void TestEqualityWithULP(const std::vector<float>& in1, const std::vector<float>& in2, unsigned int ulpDiff)
 {
@@ -87,14 +87,14 @@ int main(int argc, char* argv[])
         " ms" << std::endl;
 
     start = high_resolution_clock::now();
-    MatMulGatherFunc(matIn1.data(), matIn2.data(), matOut.data(), sizeM, sizeN, sizeP);
+    mat_mul_execute(matMulType_t::MAT_MUL_GATHER, matIn1.data(), matIn2.data(), matOut.data(), sizeM, sizeN, sizeP);
     std::cout << "Optimized with gather time taken: " <<
         std::chrono::duration_cast<milliseconds>(high_resolution_clock::now() - start).count() <<
         " ms" << std::endl;
     TestEqualityWithULP(matOutRef, matOut, 50);
 
     start = high_resolution_clock::now();
-    MatMulFunc(matIn1.data(), matIn2.data(), matOut.data(), sizeM, sizeN, sizeP);
+    mat_mul_execute(matMulType_t::MAT_MUL, matIn1.data(), matIn2.data(), matOut.data(), sizeM, sizeN, sizeP);
     std::cout << "Optimized with partial product reuse time taken: " <<
         std::chrono::duration_cast<milliseconds>(high_resolution_clock::now() - start).count() <<
         " ms" << std::endl;

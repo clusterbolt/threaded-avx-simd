@@ -11,6 +11,24 @@
 #include "bitonic_sort_with_simd.h"
 #include <iostream>
 
+void bitonic_sort_execute(bitonicSortType_t type, std::vector<std::vector<float>>& out0, unsigned int outerSize, unsigned int sortSize, bool sortDir)
+{
+    std::unique_ptr<IBitonicSortOp> strategy;
+    switch(type)
+    {
+        case bitonicSortType_t::BITONIC_SORT:
+            strategy = std::make_unique<BitonicSortDefaultOp>();
+            break;
+        case bitonicSortType_t::BITONIC_SORT_ALT:
+            strategy = std::make_unique<BitonicSortAltOp>();
+            break;
+        default:
+            strategy = std::make_unique<BitonicSortDefaultOp>();
+    };
+
+    strategy->execute(out0, outerSize, sortSize, sortDir);
+}
+
 constexpr int FLOAT_VEC_SIZE = 8;
 constexpr int LOG_FLOAT_VEC_SIZE = 3;
 constexpr int c_m = std::log2(FLOAT_VEC_SIZE); // Number of in-vector sort stages
@@ -101,7 +119,7 @@ inline void HandleFullVectors(__m256& vec0, bool currentSortDir)
     }
 }
 
-void BitonicSortFunc(std::vector<std::vector<float>>& out0, unsigned int outerSize, unsigned int sortSize, bool sortDir) {
+void BitonicSortDefaultOp::execute(std::vector<std::vector<float>>& out0, unsigned int outerSize, unsigned int sortSize, bool sortDir) {
     unsigned int sortLog2Size = std::log2(sortSize);
     unsigned int sortPaddedSize = sortSize;
     if (sortSize & (sortSize - 1))
@@ -237,7 +255,7 @@ inline void HandleFullVectorsAlt(__m256& vec0, bool sortDir)
     }
 }
 
-void BitonicSortAltFunc(std::vector<std::vector<float>>& out0, unsigned int outerSize, unsigned int sortSize, bool sortDir) {
+void BitonicSortAltOp::execute(std::vector<std::vector<float>>& out0, unsigned int outerSize, unsigned int sortSize, bool sortDir) {
     unsigned int sortLog2Size = std::log2(sortSize);
     unsigned int sortPaddedSize = sortSize;
     if (sortSize & (sortSize - 1) || sortSize < FLOAT_VEC_SIZE)
@@ -268,7 +286,7 @@ void BitonicSortAltFunc(std::vector<std::vector<float>>& out0, unsigned int oute
         for (int i = c_m; i < sortLog2Size; i++)
         {
             /* The first substage requires reversing the order of elements in the second vector
-               The remaining substages work the same as the bidirectional Bitonic Sort except that 
+               The remaining substages work the same as the bidirectional Bitonic Sort except that
                given sort direction is used consistently */
             int stageSize = std::pow(2, i + 1);
             if (sortDir)

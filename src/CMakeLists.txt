@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.28)
-project(avxkernels LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,9 +14,12 @@ set(SOURCE_FILES
 
 add_library(avxkernels STATIC ${SOURCE_FILES})
 
-target_include_directories(avxkernels PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/sort_op/include)
-target_include_directories(avxkernels PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/reduce_op/include)
-target_include_directories(avxkernels PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/matmul_op/include)
+target_include_directories(avxkernels PUBLIC ${PROJECT_SOURCE_DIR}/common)
+
+target_include_directories(avxkernels PRIVATE
+                            ${CMAKE_CURRENT_SOURCE_DIR}/sort_op/include
+                            ${CMAKE_CURRENT_SOURCE_DIR}/reduce_op/include
+                            ${CMAKE_CURRENT_SOURCE_DIR}/matmul_op/include)
 
 set_target_properties(avxkernels PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}

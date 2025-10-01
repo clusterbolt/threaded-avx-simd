@@ -7,13 +7,28 @@
 #include <numeric> // For std::accumulate
 #include "reduce_sum_with_threads_and_simd.h"
 
+void reduce_sum_execute(reduceSumType_t type, float *dataArray, unsigned int arrSize, float& sum)
+{
+    std::unique_ptr<IReduceSumOp> strategy;
+    switch(type)
+    {
+        case reduceSumType_t::REDUCE_SUM:
+            strategy = std::make_unique<ReduceSumDefaultOp>();
+            break;
+        default:
+            strategy = std::make_unique<ReduceSumDefaultOp>();
+    };
+
+    strategy->execute(dataArray, arrSize, sum);
+}
+
 #ifdef DEBUG
             std::mutex print_mtx; // Mutex for printing
 #endif
 
 constexpr int FLOAT_VEC_SIZE = 8;
 
-void ReduceSumFunc(float *dataArray, unsigned int arrSize, float& sum)
+void ReduceSumDefaultOp::execute(float *dataArray, unsigned int arrSize, float& sum)
 {
     std::vector<std::thread> threads;
     int nThreads = std::thread::hardware_concurrency();

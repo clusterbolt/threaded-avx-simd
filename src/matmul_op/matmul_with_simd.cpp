@@ -4,7 +4,25 @@
 
 constexpr int FLOAT_VEC_SIZE = 8;
 
-void MatMulGatherFunc(float* matIn1, float* matIn2, float* matOut, size_t sizeM, size_t sizeN, size_t sizeP)
+void mat_mul_execute(matMulType_t type, float* matIn1, float* matIn2, float* matOut, size_t sizeM, size_t sizeN, size_t sizeP)
+{
+    std::unique_ptr<IMatMulOp> strategy;
+    switch(type)
+    {
+        case matMulType_t::MAT_MUL:
+            strategy = std::make_unique<MatMulDefaultOp>();
+            break;
+        case matMulType_t::MAT_MUL_GATHER:
+            strategy = std::make_unique<MatMulGatherOp>();
+            break;
+        default:
+            strategy = std::make_unique<MatMulDefaultOp>();
+    };
+
+    strategy->execute(matIn1, matIn2, matOut, sizeM, sizeN, sizeP);
+}
+
+void MatMulGatherOp::execute(float* matIn1, float* matIn2, float* matOut, size_t sizeM, size_t sizeN, size_t sizeP)
 {
     // Offsets = 0, P, 2P, 3P, 4P, 5P, 6P, 7P
     __m256i idx = _mm256_setr_epi32(0, sizeP, sizeP << 1, sizeP + (sizeP << 1), sizeP << 2, (sizeP << 2) + sizeP, (sizeP << 2) + (sizeP << 1), (sizeP << 3) - sizeP);
@@ -41,7 +59,7 @@ void MatMulGatherFunc(float* matIn1, float* matIn2, float* matOut, size_t sizeM,
                 // Now horizontally sum 4 floats in sum128
                 sum128 = _mm_hadd_ps(sum128, sum128); // [a1 + a2] [a3 + a4] ....
                 sum128 = _mm_hadd_ps(sum128, sum128); // [a1 + a2 + a3 + a4] [a1 + a2 + a3 + a4] ....
-                
+
                 scalarSum += _mm_cvtss_f32(sum128); // Add scalar sum to the result
                 matOut[sizeP * i + j] = scalarSum;
             }
@@ -53,7 +71,7 @@ void MatMulGatherFunc(float* matIn1, float* matIn2, float* matOut, size_t sizeM,
                 // Now horizontally sum 4 floats in sum128
                 sum128 = _mm_hadd_ps(sum128, sum128); // [a1 + a2] [a3 + a4] ....
                 sum128 = _mm_hadd_ps(sum128, sum128); // [a1 + a2 + a3 + a4] [a1 + a2 + a3 + a4] ....
-                
+
                 scalarSum_2 += _mm_cvtss_f32(sum128); // Add scalar sum to the result
                 matOut[sizeP * (i + 1) + j] = scalarSum_2;
             }
@@ -88,7 +106,7 @@ void MatMulGatherFunc(float* matIn1, float* matIn2, float* matOut, size_t sizeM,
                 // Now horizontally sum 4 floats in sum128
                 sum128 = _mm_hadd_ps(sum128, sum128); // [a1 + a2] [a3 + a4] ....
                 sum128 = _mm_hadd_ps(sum128, sum128); // [a1 + a2 + a3 + a4] [a1 + a2 + a3 + a4] ....
-                
+
                 scalarSum += _mm_cvtss_f32(sum128); // Add scalar sum to the result
                 matOut[sizeP * i + j] = scalarSum;
             }
@@ -96,7 +114,7 @@ void MatMulGatherFunc(float* matIn1, float* matIn2, float* matOut, size_t sizeM,
     }
 }
 
-void MatMulFunc(float* matIn1, float* matIn2, float* matOut, size_t sizeM, size_t sizeN, size_t sizeP)
+void MatMulDefaultOp::execute(float* matIn1, float* matIn2, float* matOut, size_t sizeM, size_t sizeN, size_t sizeP)
 {
     int i = 0;
     __m256 mAccZero = _mm256_setzero_ps();

@@ -7,7 +7,7 @@
 #include <cmath>
 #include <mutex>
 #include <numeric> // For std::accumulate
-#include "reduce_sum_with_threads_and_simd.h"
+#include "api.h"
 
 // #define DEBUG  // Uncomment to enable debug prints
 #ifdef DEBUG
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 
     float sumRes;
     high_resolution_clock::time_point start = high_resolution_clock::now();
-    ReduceSumFunc(dataArray, arrSize, sumRes);
+    reduce_sum_execute(reduceSumType_t::REDUCE_SUM, dataArray, arrSize, sumRes);
     std::cout << "Optimized time taken: " <<
         std::chrono::duration_cast<milliseconds>(high_resolution_clock::now() - start).count() <<
         " ms" << std::endl;
